@@ -1,6 +1,5 @@
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Arrays;
 public class Main {
     static final int ROUNDS = 32;
     static final int BLOCK_SIZE = 8;
-    private static final int INT_BLOCK_SIZE = 4;
+    static final int INT_BLOCK_SIZE = 4;
     static final int LEFT_SHIFT = 4;
     static final int RIGHT_SHIFT = 5;
     static final int DELTA = 0x9e3779b9;
@@ -20,12 +19,11 @@ public class Main {
      *
      * @param args The command-line arguments (not used in this example).
      */
-    public static void main(String[] args) {
-        String inputFile = "input_file.txt";
-        String outputFile = "output_file.txt";
-
+    public static void main(String[] args) throws IOException {
+        String inputFile = "src/main/resources/input_file.txt";
+        String outputFile = "src/main/resources/output_file.txt";
         byte[] originalBytes = readBytesFromFile(inputFile);
-        System.out.println(Arrays.toString(originalBytes));
+        String mode = args[4];
 
         int[] key = { Integer.parseInt(args[0]),
                 Integer.parseInt(args[1]),
@@ -33,14 +31,10 @@ public class Main {
                 Integer.parseInt(args[3])
         };
 
-        String mode = args[4];
-
         if( mode.equals("ENCRYPT") ){
-            // Encrypt the content of the input file and write to encrypted file
             byte[] encryptedBytes = encryptTEACipherChain(originalBytes, key);
             writeBytesToFile(encryptedBytes, outputFile);
         } else if( mode.equals("DECRYPT") ){
-            // Decrypt the content of the encrypted file and write to decrypted file
             byte[] decryptedBytes = decryptTEACipherChain(originalBytes, key);
             writeBytesToFile(decryptedBytes, outputFile);
         } else {
@@ -65,7 +59,6 @@ public class Main {
         byte[] previousResult = new byte[paddedInput.length];
 
         for (int block = 0; block < numBlocks; block++) {
-
             int blockStart = block * BLOCK_SIZE;
             int v0 = ByteBuffer.wrap(paddedInput, blockStart, INT_BLOCK_SIZE).getInt();
             int v1 = ByteBuffer.wrap(paddedInput, blockStart + INT_BLOCK_SIZE, INT_BLOCK_SIZE).getInt();
@@ -161,12 +154,12 @@ public class Main {
      * @param fileName The name of the file to be read.
      * @return A byte array containing the contents of the file, or {@code null} if an error occurs.
      */
-    public static byte[] readBytesFromFile(String fileName) {
+    public static byte[] readBytesFromFile(String fileName) throws IOException {
         try (FileInputStream inputStream = new FileInputStream(fileName)) {
             return inputStream.readAllBytes();
         } catch (IOException e) {
             System.err.println("Error reading from file: " + e.getMessage());
-            return null;
+            throw e;
         }
     }
 
